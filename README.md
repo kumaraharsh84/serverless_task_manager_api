@@ -1,89 +1,184 @@
-# AWS Internship Project: Serverless Task Manager API
+# 📋 Serverless Task Manager API
 
-This backend project uses:
-- AWS Lambda (Python)
-- Amazon API Gateway (REST API)
-- Amazon DynamoDB (NoSQL)
-- AWS SAM (Infrastructure as Code + deployment)
+A production-style serverless REST API for managing tasks, built on AWS using Lambda, API Gateway, DynamoDB, and SAM.
 
-## Features
-- CRUD task APIs
-- Optional API token authentication (`x-api-key` header)
-- Task fields: `title`, `description`, `status`, `priority`, `dueDate`
-- Filters: `status`
-- Search: `q` (search in title + description)
-- Pagination: `limit` and `lastKey`
-- Soft delete (`isDeleted`) instead of hard delete
-- Audit timestamps: `createdAt`, `updatedAt`, `deletedAt`
-- Structured Lambda logging for CloudWatch
+---
 
-## Endpoints
-- `POST /tasks`
-- `GET /tasks`
-- `PUT /tasks/{taskId}`
-- `DELETE /tasks/{taskId}`
+## 🏗️ Architecture
 
-## Query Params for GET /tasks
-- `status`: `todo | in-progress | done`
-- `q`: search text
-- `limit`: `1-50` (default `10`)
-- `lastKey`: opaque pagination token returned by previous response
+| Service | Role |
+|---|---|
+| **AWS Lambda** (Python 3.12) | Business logic & request handling |
+| **Amazon API Gateway** | REST API endpoint exposure |
+| **Amazon DynamoDB** | NoSQL task persistence |
+| **AWS SAM** | Infrastructure as Code & deployment |
 
-## Prerequisites
-- AWS account
-- AWS CLI configured (`aws configure`)
-- AWS SAM CLI installed
+---
+
+## ✨ Features
+
+- ✅ Full **CRUD** task operations
+- 🔐 Optional **API token authentication** via `x-api-key` header
+- 🔍 **Search** across task title and description (`q` param)
+- 🏷️ **Filter** tasks by status
+- 📄 **Pagination** with `limit` and `lastKey` cursor support
+- 🗑️ **Soft delete** — tasks are flagged `isDeleted` rather than permanently removed
+- 🕒 **Audit timestamps** — `createdAt`, `updatedAt`, `deletedAt`
+- 📊 **Structured CloudWatch logging** for observability
+
+---
+
+## 📌 Task Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `title` | string | Task title |
+| `description` | string | Task details |
+| `status` | string | `todo` \| `in-progress` \| `done` |
+| `priority` | string | Task priority level |
+| `dueDate` | string (ISO 8601) | Due date/time |
+
+---
+
+## 🔌 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/tasks` | Create a new task |
+| `GET` | `/tasks` | List tasks (with optional filters) |
+| `PUT` | `/tasks/{taskId}` | Update an existing task |
+| `DELETE` | `/tasks/{taskId}` | Soft-delete a task |
+
+### Query Parameters for `GET /tasks`
+
+| Parameter | Description | Default |
+|---|---|---|
+| `status` | Filter by `todo`, `in-progress`, or `done` | — |
+| `q` | Search text in title & description | — |
+| `limit` | Results per page (1–50) | `10` |
+| `lastKey` | Pagination cursor from previous response | — |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- An [AWS account](https://aws.amazon.com/)
+- [AWS CLI](https://aws.amazon.com/cli/) configured (`aws configure`)
+- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html) installed
 - Python 3.12+
 
-## Deploy
+### Installation
+
+```bash
+git clone https://github.com/kumaraharsh84/serverless_task_manager_api.git
+cd serverless_task_manager_api
+pip install -r requirements.txt
+```
+
+### Deploy to AWS
+
 ```bash
 sam build
 sam deploy --guided
 ```
 
-During guided deploy:
-- Stack name: `internship-task-api`
-- Region: for example `ap-south-1`
-- Allow IAM role creation: `Y`
-- Save config: `Y`
-- Optional parameter `ApiToken`: set a secret value if you want auth enabled
+**Guided deploy prompts:**
 
-If `ApiToken` is empty, auth is disabled.
-If set, pass the same value in `x-api-key` header.
+| Prompt | Suggested Value |
+|---|---|
+| Stack name | `internship-task-api` |
+| Region | `ap-south-1` (or your preferred region) |
+| Allow IAM role creation | `Y` |
+| Save config | `Y` |
+| `ApiToken` parameter | Set a secret value to enable auth, or leave empty to disable |
 
-## Test
-Set API base URL:
+> 💡 If `ApiToken` is left empty, authentication is disabled. If set, clients must include the same value in the `x-api-key` request header.
+
+---
+
+## 🧪 Testing the API
+
+After deployment, set your API base URL:
+
 ```powershell
-$api="https://YOUR_API_ID.execute-api.ap-south-1.amazonaws.com/v1"
+$api = "https://YOUR_API_ID.execute-api.ap-south-1.amazonaws.com/v1"
 ```
 
-Optional auth header (only if ApiToken was set):
+Optionally, set your auth header (only required if `ApiToken` was configured):
+
 ```powershell
-$headers=@{"x-api-key"="YOUR_TOKEN";"Content-Type"="application/json"}
+$headers = @{
+  "x-api-key"    = "YOUR_TOKEN"
+  "Content-Type" = "application/json"
+}
 ```
 
-Create:
+### Create a Task
+
 ```powershell
-Invoke-RestMethod -Method POST -Uri "$api/tasks" -ContentType "application/json" -Body '{"title":"Build project","description":"Internship work","status":"todo","priority":"high","dueDate":"2026-03-20T12:00:00+05:30"}'
+Invoke-RestMethod -Method POST -Uri "$api/tasks" `
+  -ContentType "application/json" `
+  -Body '{"title":"Build project","description":"Internship work","status":"todo","priority":"high","dueDate":"2026-03-20T12:00:00+05:30"}'
 ```
 
-List with filters and pagination:
+### List Tasks (with filters & pagination)
+
 ```powershell
 Invoke-RestMethod -Method GET -Uri "$api/tasks?status=todo&q=project&limit=5"
 ```
 
-Update:
+### Update a Task
+
 ```powershell
-Invoke-RestMethod -Method PUT -Uri "$api/tasks/<TASK_ID>" -ContentType "application/json" -Body '{"status":"in-progress","priority":"medium"}'
+Invoke-RestMethod -Method PUT -Uri "$api/tasks/<TASK_ID>" `
+  -ContentType "application/json" `
+  -Body '{"status":"in-progress","priority":"medium"}'
 ```
 
-Delete (soft delete):
+### Delete a Task (soft delete)
+
 ```powershell
 Invoke-RestMethod -Method DELETE -Uri "$api/tasks/<TASK_ID>"
 ```
 
-## Internship Talking Points
-- Built a production-style serverless API on AWS.
-- Implemented validation, auth option, audit fields, and soft delete.
-- Added API filtering/search/pagination for scalable task retrieval.
-- Deployed repeatably with SAM template-driven infrastructure.
+---
+
+## 📁 Project Structure
+
+```
+serverless_task_manager_api/
+├── src/                  # Lambda function source code
+├── events/               # Sample event payloads for local testing
+├── template.yaml         # AWS SAM infrastructure definition
+├── requirements.txt      # Python dependencies
+├── .gitignore
+└── README.md
+```
+
+---
+
+## 📝 Key Design Decisions
+
+- **Soft delete** preserves data integrity and supports audit trails
+- **Opaque pagination tokens** (`lastKey`) abstract DynamoDB's internal cursor, keeping the API clean
+- **Optional auth** allows frictionless development/testing while supporting production security
+- **SAM template** enables repeatable, version-controlled infrastructure deployments
+
+---
+
+## 🔧 Local Development
+
+You can test Lambda functions locally using SAM:
+
+```bash
+sam local invoke -e events/<event-file>.json
+sam local start-api
+```
+
+---
+
+## 📄 License
+
+This project was developed as part of an AWS internship. Feel free to fork and adapt.
