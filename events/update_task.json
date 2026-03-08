@@ -1,0 +1,6 @@
+{
+  "pathParameters": {
+    "taskId": "REPLACE_WITH_TASK_ID"
+  },
+  "body": "{\"title\":\"Finish final report\",\"status\":\"done\",\"priority\":\"medium\"}"
+}

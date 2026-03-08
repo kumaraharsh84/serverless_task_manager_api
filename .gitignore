@@ -1,0 +1,11 @@
+.aws-sam/
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+!.env.example
+samconfig.toml
+*.log
+.vscode/
+.sam-cli/
