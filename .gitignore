@@ -9,3 +9,5 @@ samconfig.toml
 *.log
 .vscode/
 .sam-cli/
+.coverage
+.pytest_cache/
